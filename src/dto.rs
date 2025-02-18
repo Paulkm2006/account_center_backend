@@ -1,5 +1,4 @@
 
-
 use mongodb::bson::{oid, DateTime};
 use serde::{Deserialize, Serialize};
 use totp_rs::TOTP;
@@ -26,6 +25,9 @@ pub struct AccountInfo {
 	#[serde(rename = "_id")]
 	pub id: Option<oid::ObjectId>,
 	pub name: String,
+	pub avatar: String,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub login_url: Option<String>,
 	pub account: String,
 	pub password: String,
 	pub created_by: Option<String>,

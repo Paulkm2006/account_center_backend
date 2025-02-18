@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(mongo_client.clone()))
             .app_data(web::Data::new(config.clone()))
+            .wrap(actix_cors::Cors::permissive())
             .wrap(Logger::new("%{r}a %r %s"))
             .configure(router::config)
     });

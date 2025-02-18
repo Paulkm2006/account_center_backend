@@ -22,3 +22,11 @@ pub async fn get(
 		Err(e) => HttpResponse::InternalServerError().json(json!({"error": format!("DB Error: {}", e)}).to_string()),
 	}
 }
+
+pub async fn verify_jwt(
+	req: actix_web::HttpRequest,
+	conf: web::Data<Config>,
+) -> impl Responder {
+	let user = extract_user_info!(req, conf.jwt.secret.as_bytes());
+	HttpResponse::Ok().json(json!({"user": user}))
+}

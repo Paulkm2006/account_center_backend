@@ -12,6 +12,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 			.route("", web::post().to(controller::account::create))
 			.route("/{id}", web::put().to(controller::account::update))
 			.route("/{id}", web::delete().to(controller::account::delete))
+			.route("/{id}/auth", web::post().to(controller::account::update_auth))
 		);
 	cfg.service(
 		web::scope("/auth")
@@ -22,5 +23,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 	cfg.service(
 		web::scope("/user")
 			.route("/{id}", web::get().to(controller::user::get))
+		);
+	cfg.service(
+		web::scope("")
+			.route("/verify", web::get().to(controller::user::verify_jwt))
 		);
 }

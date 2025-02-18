@@ -75,7 +75,7 @@ pub async fn get_auth(db: Database, id: oid::ObjectId) -> Result<Option<Value>, 
 	match auth.auth_type {
 		AuthType::TOTP(totp) => {
 			let code = totp.generate_current()?;
-			Ok(Some(json!({"code": code})))
+			Ok(Some(json!({"type": "totp", "data": code})))
 		},
 		AuthType::Email(email) => {
 			Ok(Some(json!({"type": "email", "data": email})))
