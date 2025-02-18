@@ -65,14 +65,6 @@ pub struct AuthInfo {
 	pub auth_type: AuthType,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct AuthResponse<T> {
-	#[serde(rename = "type")]
-	pub a_type: String,
-	pub data: T,
-}
-
-
 #[derive(Deserialize)]
 pub struct QueryParams {
 	pub id: String,
