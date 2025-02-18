@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, Responder};
+use mongodb::bson;
 use mongodb::bson::oid;
 use mongodb::bson::oid::ObjectId;
 use mongodb::Client;
@@ -34,15 +35,21 @@ pub async fn show(
 ) -> impl Responder {
 	let _ = extract_user_info!(req, &conf.jwt.secret.as_bytes());
 	let db = client.database(&conf.db.db_name);
-	let account = match get_account(db, ObjectId::parse_str(&params.id).unwrap()).await{
+	let id = match ObjectId::parse_str(&params.id){
+		Ok(id) => id,
+		Err(_) => {
+			return HttpResponse::BadRequest().json(json!({"error": "Invalid ID"}));
+		}
+	};
+	let account = match get_account(db, id).await{
 		Ok(account) => account,
 		Err(e) => {
-			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string());
+			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}));
 		}
 	};
 	match account {
 		Some(account) => HttpResponse::Ok().json(account),
-		None => HttpResponse::NotFound().json(json!({"error": "Account not found"}).to_string()),
+		None => HttpResponse::NotFound().json(json!({"error": "Account not found"})),
 	}
 }
 
@@ -60,16 +67,16 @@ pub async fn create(
 		account: payload.account.clone(),
 		password: payload.password.clone(),
 		created_by: Some(user.sub.clone()),
-		created_at: Some(SystemTime::now()),
+		created_at: Some(bson::DateTime::from(SystemTime::now())),
 		updated_by: Some(user.sub),
-		updated_at: Some(SystemTime::now()),
+		updated_at: Some(bson::DateTime::from(SystemTime::now())),
 		comment: payload.comment.clone(),
 		auth_id: payload.auth_id.clone(),
 	};
 	match create_account(db, account).await{
 		Ok(_) => HttpResponse::Ok().json(json!({"status": "ok"})),
 		Err(e) => {
-			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string())
+			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}))
 		}
 	}
 }
@@ -86,14 +93,14 @@ pub async fn update(
 	let id = match payload.id {
 		Some(id) => id,
 		None => {
-			return HttpResponse::BadRequest().json(json!({"error": "id is required"}).to_string());
+			return HttpResponse::BadRequest().json(json!({"error": "id is required"}));
 		}
 	};
 
 	let acc = match get_account(db.clone(), id).await{
 		Ok(acc) => acc,
 		Err(e) => {
-			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string());
+			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}));
 		}
 	};
 	let account = match acc {
@@ -102,19 +109,19 @@ pub async fn update(
 			account.account = payload.account.clone();
 			account.password = payload.password.clone();
 			account.updated_by = Some(user.sub);
-			account.updated_at = Some(SystemTime::now());
+			account.updated_at = Some(bson::DateTime::from(SystemTime::now()));
 			account.comment = payload.comment.clone();
 			account.auth_id = payload.auth_id.clone();
 			account
 		},
 		None => {
-			return HttpResponse::NotFound().json(json!({"error": "Account not found"}).to_string());
+			return HttpResponse::NotFound().json(json!({"error": "Account not found"}));
 		}
 	};
 	match update_account(db, id, account).await{
 		Ok(_) => HttpResponse::Ok().json(json!({"status": "ok"})),
 		Err(e) => {
-			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string())
+			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}))
 		}
 	}
 }
@@ -127,10 +134,16 @@ pub async fn delete(
 ) -> impl Responder {
 	let _ = extract_user_info!(req, &conf.jwt.secret.as_bytes());
 	let db = client.database(&conf.db.db_name);
-	match delete_account(db, ObjectId::parse_str(&params.id).unwrap()).await{
+	let id = match ObjectId::parse_str(&params.id){
+		Ok(id) => id,
+		Err(_) => {
+			return HttpResponse::BadRequest().json(json!({"error": "Invalid ID"}));
+		}
+	};
+	match delete_account(db, id).await{
 		Ok(_) => HttpResponse::Ok().json(json!({"status": "ok"})),
 		Err(e) => {
-			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string())
+			HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}))
 		}
 	}
 }

@@ -1,6 +1,6 @@
-use std::time::SystemTime;
 
-use mongodb::bson::oid;
+
+use mongodb::bson::{oid, DateTime};
 use serde::{Deserialize, Serialize};
 use totp_rs::TOTP;
 
@@ -14,7 +14,7 @@ pub struct UserInfo {
 	pub picture: String,
 	pub group: String,
 	#[serde(skip_serializing_if = "Option::is_none")]
-	pub last_login: Option<String>,
+	pub last_login: Option<DateTime>,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub exp: Option<i64>,  // JWT expiration time
 	#[serde(skip_serializing_if = "Option::is_none")]
@@ -29,10 +29,12 @@ pub struct AccountInfo {
 	pub account: String,
 	pub password: String,
 	pub created_by: Option<String>,
-	pub created_at: Option<SystemTime>,
+	pub created_at: Option<DateTime>,
 	pub updated_by: Option<String>,
-	pub updated_at: Option<SystemTime>,
+	pub updated_at: Option<DateTime>,
+	#[serde(skip_serializing_if = "Option::is_none")]
 	pub comment: Option<String>,
+	#[serde(skip_serializing_if = "Option::is_none")]
 	pub auth_id: Option<oid::ObjectId>,
 }
 
@@ -40,9 +42,12 @@ pub struct AccountInfo {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AuthOwnerInfo {
 	pub name: String,
+	#[serde(skip_serializing_if = "Option::is_none")]
 	pub email: Option<String>,
+	#[serde(skip_serializing_if = "Option::is_none")]
 	pub phone: Option<String>,
 	pub qq: String,
+	#[serde(skip_serializing_if = "Option::is_none")]
 	pub comment: Option<String>,
 }
 

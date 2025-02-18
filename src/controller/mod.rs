@@ -1,6 +1,7 @@
 pub mod oauth;
 pub mod account;
 pub mod auth;
+pub mod user;
 
 #[macro_export]
 macro_rules! extract_user_info {

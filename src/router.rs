@@ -19,4 +19,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 			.route("/{a_type}", web::post().to(controller::auth::create))
 			.route("/{id}", web::delete().to(controller::auth::delete))
 		);
+	cfg.service(
+		web::scope("/user")
+			.route("/{id}", web::get().to(controller::user::get))
+		);
 }

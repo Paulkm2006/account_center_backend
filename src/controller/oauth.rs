@@ -28,7 +28,9 @@ pub async fn callback(
 		}
 	};
 
-	match crate::model::user::check_user(&user, client).await{
+	let db = client.database(conf.db.db_name.as_str());
+
+	match crate::model::user::check_user(&user, db).await{
 		Ok(_) => (),
 		Err(e) => {
 			return HttpResponse::InternalServerError().json(json!({"error": e.to_string()}));
@@ -36,5 +38,5 @@ pub async fn callback(
 	};
 
 	let token = crate::utils::jwt::new_token(user.clone(), &conf.jwt.secret.as_bytes(), conf.jwt.expire);
-	HttpResponse::Ok().body(json!({"token": token}).to_string())
+	HttpResponse::Ok().json(json!({"token": token}))
 }

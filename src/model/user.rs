@@ -1,14 +1,12 @@
-use actix_web::web;
-use mongodb::{bson::doc, Client};
+use mongodb::{bson::{self, doc}, Database};
 use crate::dto::UserInfo;
 use std::time::SystemTime;
 
 
 pub async fn check_user(
 	user: &UserInfo,
-	mongo_client: web::Data<Client>,
+	db: Database
 ) -> Result<Option<String>, mongodb::error::Error> {
-	let db = mongo_client.database("account_center");
 	let collection = db.collection::<UserInfo>("users");
 
 	let filter = doc! {
@@ -25,12 +23,45 @@ pub async fn check_user(
 				},
 				doc! {
 					"$set": {
-						"last_login": SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs().to_string()
+						"last_login": bson::DateTime::from(SystemTime::now())
 					}
 				},
 			).await?;
-			Ok(Some(i.last_login.unwrap()))
+			Ok(Some(i.last_login.unwrap().to_string()))
 		},
-		None => Ok(None),
+		None => {
+			create_user(user.clone(), db).await?;
+			Ok(None)
+		}
 	}
+}
+
+pub async fn get_user_info(
+	user: String,
+	db: Database
+) -> Result<Option<UserInfo>, mongodb::error::Error> {
+	let collection = db.collection::<UserInfo>("users");
+
+	let filter = doc! {
+		"sub": user
+	};
+
+	let result = collection.find_one(filter).await?;
+
+	Ok(result)
+}
+
+pub async fn create_user(
+	user: UserInfo,
+	db: Database
+) -> Result<(), mongodb::error::Error> {
+	let collection = db.collection::<UserInfo>("users");
+
+	let mut user_db = user.clone();
+	user_db.iat = None;
+	user_db.exp = None;
+
+	collection.insert_one(user_db).await?;
+
+	Ok(())
 }

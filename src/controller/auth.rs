@@ -22,15 +22,21 @@ pub async fn get(
 ) -> impl Responder {
 	let _ = extract_user_info!(req, &conf.jwt.secret.as_bytes());
 	let db = client.database(&conf.db.db_name);
-	let auth = match get_auth(db, ObjectId::parse_str(&params.id).unwrap()).await{
+	let id = match ObjectId::parse_str(&params.id){
+		Ok(id) => id,
+		Err(_) => {
+			return HttpResponse::BadRequest().json(json!({"error": "Invalid ID"}));
+		}
+	};
+	let auth = match get_auth(db, id).await{
 		Ok(auth) => auth,
 		Err(e) => {
-			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string());
+			return HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}));
 		}
 	};
 	match auth {
 		Some(auth) => HttpResponse::Ok().json(auth),
-		None => HttpResponse::NotFound().json(json!({"error": "Auth not found"}).to_string()),
+		None => HttpResponse::NotFound().json(json!({"error": "Auth not found"})),
 	}
 }
 
@@ -45,8 +51,8 @@ pub async fn create(
 	let db = client.database(&conf.db.db_name);
 
 	match create_auth(db, param.a_type.clone(), payload.clone()).await{
-		Ok(id) => HttpResponse::Ok().json(json!({"id": id})),
-		Err(e) => HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string()),
+		Ok(id) => HttpResponse::Ok().json(json!({"id": id.to_hex()})),
+		Err(e) => HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)})),
 	}
 }
 
@@ -58,8 +64,14 @@ pub async fn delete(
 ) -> impl Responder {
 	let _ = extract_user_info!(req, &conf.jwt.secret.as_bytes());
 	let db = client.database(&conf.db.db_name);
-	match delete_auth(db, ObjectId::parse_str(&params.id).unwrap()).await{
+	let id = match ObjectId::parse_str(&params.id){
+		Ok(id) => id,
+		Err(_) => {
+			return HttpResponse::BadRequest().json(json!({"error": "Invalid ID"}));
+		}
+	};
+	match delete_auth(db, id).await{
 		Ok(_) => HttpResponse::Ok().finish(),
-		Err(e) => HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)}).to_string()),
+		Err(e) => HttpResponse::InternalServerError().json(json!({"error":format!("DB Error: {}", e)})),
 	}
 }
