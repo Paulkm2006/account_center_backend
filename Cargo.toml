@@ -1,0 +1,19 @@
+[package]
+name = "account_center_backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "^4.9"
+anyhow = "^1.0"
+base64 = "0.22.1"
+config-file = "^0.2"
+env_logger = "^0.11"
+mongodb = "^3.2"
+reqwest = "^0.12"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0.138"
+toml = "^0.8"
+jsonwebtoken = "*"
+futures = "^0.3"
+totp-rs = { version = "^5.6", features = ["serde_support"] }
