@@ -3,7 +3,7 @@ name: Build and deploy
 on:
   push:
     branches: # dev 可以改为 branch main 触发
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
