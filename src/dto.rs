@@ -10,7 +10,7 @@ pub struct UserInfo {
 	pub rol: String,
 	pub email: String,
 	pub phone: String,
-	pub picture: String,
+	pub picture: Option<String>,
 	pub group: String,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub last_login: Option<DateTime>,

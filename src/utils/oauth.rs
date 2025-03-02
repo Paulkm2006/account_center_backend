@@ -31,7 +31,11 @@ pub async fn get_info(code: &str, conf: web::Data<Config>) -> Result<UserInfo, B
 	let claims = claims.split('.').nth(1).context("Token should have 3 parts")?;
 	let claims = base64::engine::general_purpose::STANDARD_NO_PAD.decode(claims).context("Claims should be base64 encoded")?;
 	let claims = String::from_utf8(claims).context("Claims should be utf8 encoded")?;
-	let claim: UserInfo = serde_json::from_str(&claims).context("Claims should be json encoded")?;
+	let mut claim: UserInfo = serde_json::from_str(&claims).context("Binding claims failed")?;
+
+	if claim.picture.is_none() {
+		claim.picture = Some("https://gravatar.com/avatar/".to_string() + &sha256::digest(claim.email.as_bytes()));
+	}
 
 	Ok(claim)
 }
