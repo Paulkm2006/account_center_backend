@@ -27,7 +27,6 @@ pub async fn get_info(code: &str, conf: web::Data<Config>) -> Result<UserInfo, B
 		.await.context("Request should be successful")?.text().await.context("Response should be text")?;
 
 	let claims: Value = serde_json::from_str(&token_response).context("Claims should be json encoded")?;
-	println!("{:?}", claims);
 	let claims = claims["id_token"].as_str().context("Token should have id_token")?;
 	let claims = claims.split('.').nth(1).context("Token should have 3 parts")?.replace('-', "+").replace('_', "/");
 	let claims = base64::engine::general_purpose::STANDARD_NO_PAD.decode(claims).context("Claims should be base64 encoded")?;

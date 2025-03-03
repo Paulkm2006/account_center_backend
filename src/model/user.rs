@@ -60,6 +60,7 @@ pub async fn create_user(
 	let mut user_db = user.clone();
 	user_db.iat = None;
 	user_db.exp = None;
+	user_db.last_login = Some(bson::DateTime::from(SystemTime::now()));
 
 	collection.insert_one(user_db).await?;
 
